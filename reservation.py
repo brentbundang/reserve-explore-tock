@@ -56,6 +56,7 @@ class Reservation:
         self.reservation_time_max = datetime.strptime(
             self.latest_time, self.reservation_time_format)
         self.restaurant = data['restaurant']
+        self.experience_id = data['experience-id']
 
     def teardown(self):
         self.driver.quit()
@@ -66,7 +67,13 @@ class Reservation:
 
         while not self.reservation_found:
             time.sleep(self.refresh_delay_msec / 1000)
-            url = f"https://www.exploretock.com/{self.restaurant}/experience/402750/{self.experience}?date=2024-{self.reservation_month}-{self.today_date}&size={self.reservation_size}&time=12%3A00"
+            if self.experience == "lunch" and self.restaurant == "edulis":
+                url = f"https://www.exploretock.com/{self.restaurant}/experience/467287/spring-into-spring-luncheon?date=2024-{self.reservation_month}-{self.today_date}&size={self.reservation_size}&time=12%3A00"
+            elif self.experience == "dinner" and self.restaurant == "edulis":
+               url = f"https://www.exploretock.com/{self.restaurant}/experience/402750/edulis-dinner?date=2024-{self.reservation_month}-{self.today_date}&size={self.reservation_size}&time=12%3A00"
+            else:
+                 url = f"https://www.exploretock.com/{self.restaurant}/experience/{self.experience_id}/{self.experience}?date=2024-{self.reservation_month}-{self.today_date}&size={self.reservation_size}&time=12%3A00"
+                
             self.driver.get(url)
             WebDriverWait(self.driver, self.webdriver_timeout_delay_ms).until(
                 expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "div.ConsumerCalendar-month")))
@@ -84,7 +91,7 @@ class Reservation:
             time.sleep(self.browser_close_delay_sec)
 
     def search_time(self):
-        for item in self.driver.find_elements(By.CSS_SELECTOR, "[data-testid='booking-card-collapse-header']"):
+        for item in self.driver.find_elements(By.CSS_SELECTOR, "div.SearchModal-body"):
             span = item.find_element(
                 By.CSS_SELECTOR, "span.Consumer-resultsListItemTime")
             span2 = span.find_element(By.CSS_SELECTOR, "span")
@@ -107,7 +114,8 @@ class Reservation:
                 span = header.find_element(By.CSS_SELECTOR, "span")
                 print("Encountered month", span.text)
 
-                if self.reservation_month in span.text:
+                if  "April" in span.text:
+                    print(span.text)
                     month_object = month
                     print("Month", self.reservation_month, "found")
                     break
@@ -126,5 +134,6 @@ class Reservation:
                     if self.search_time():
                         print("Time found")
                         return True
+                    break
 
             return False

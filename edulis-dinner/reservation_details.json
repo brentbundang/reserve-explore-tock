@@ -1,0 +1,12 @@
+{
+    "reservation-month": "04",
+    "reservation-days": "5,6,12,13,19,20,26,27",
+    "reservation-year": "2024",
+    "date-today": "01",
+    "earliest-time": "7:00 PM",
+    "latest-time": "10:00 PM",
+    "reservation-size": "2",
+    "experience": "edulis-dinner",
+    "restaurant": "edulis",
+    "experience-id": "402750"
+}
