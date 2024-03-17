@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
+
 class Reservation:
     def __init__(self):
         self.reservation_days = None
@@ -52,9 +53,9 @@ class Reservation:
         self.latest_time = data['latest-time']
         self.reservation_time_format = "%I:%M %p"
         self.reservation_time_min = datetime.strptime(
-            self.earliest_time, self.reservation_time_format)
+        self.earliest_time, self.reservation_time_format)
         self.reservation_time_max = datetime.strptime(
-            self.latest_time, self.reservation_time_format)
+        self.latest_time, self.reservation_time_format)
         self.restaurant = data['restaurant']
         self.experience_id = data['experience-id']
 
@@ -70,10 +71,10 @@ class Reservation:
             if self.experience == "lunch" and self.restaurant == "edulis":
                 url = f"https://www.exploretock.com/{self.restaurant}/experience/467287/spring-into-spring-luncheon?date=2024-{self.reservation_month}-{self.today_date}&size={self.reservation_size}&time=12%3A00"
             elif self.experience == "dinner" and self.restaurant == "edulis":
-               url = f"https://www.exploretock.com/{self.restaurant}/experience/402750/edulis-dinner?date=2024-{self.reservation_month}-{self.today_date}&size={self.reservation_size}&time=12%3A00"
+                url = f"https://www.exploretock.com/{self.restaurant}/experience/402750/edulis-dinner?date=2024-{self.reservation_month}-{self.today_date}&size={self.reservation_size}&time=12%3A00"
             else:
-                 url = f"https://www.exploretock.com/{self.restaurant}/experience/{self.experience_id}/{self.experience}?date=2024-{self.reservation_month}-{self.today_date}&size={self.reservation_size}&time=12%3A00"
-                
+                url = f"https://www.exploretock.com/{self.restaurant}/experience/{self.experience_id}/{self.experience}?date=2024-{self.reservation_month}-{self.today_date}&size={self.reservation_size}&time=12%3A00"
+
             self.driver.get(url)
             WebDriverWait(self.driver, self.webdriver_timeout_delay_ms).until(
                 expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "div.ConsumerCalendar-month")))
@@ -89,9 +90,16 @@ class Reservation:
                 "Found availability. Sleeping for 10 minutes to complete reservation...")
             self.reservation_found = True
             time.sleep(self.browser_close_delay_sec)
+            
+    #/html/body/div[4]/div[3]/div/div[2]/div/div[2]/div[2]/div/div
 
     def search_time(self):
-        for item in self.driver.find_elements(By.CSS_SELECTOR, "div.SearchModal-body"):
+        outer_div_xpath = "/html/body/div[4]/div[3]/div/div[2]/div/div[2]/div[2]/div/div"
+        outer_div = self.driver.find_element(By.XPATH, outer_div_xpath)
+        inner_divs = outer_div.find_elements(By.XPATH, ".//div")
+        breakpoint()
+
+        for item in inner_divs:
             span = item.find_element(
                 By.CSS_SELECTOR, "span.Consumer-resultsListItemTime")
             span2 = span.find_element(By.CSS_SELECTOR, "span")
@@ -107,33 +115,33 @@ class Reservation:
         return False
 
     def search_month(self):
-            month_object = None
+        month_object = None
 
-            for month in self.driver.find_elements(By.CSS_SELECTOR, "div.ConsumerCalendar-month"):
-                header = month.find_element(By.CSS_SELECTOR, "div.ConsumerCalendar-monthHeading")
-                span = header.find_element(By.CSS_SELECTOR, "span")
-                print("Encountered month", span.text)
+        for month in self.driver.find_elements(By.CSS_SELECTOR, "div.ConsumerCalendar-month"):
+            header = month.find_element(
+                By.CSS_SELECTOR, "div.ConsumerCalendar-monthHeading")
+            span = header.find_element(By.CSS_SELECTOR, "span")
+            print("Encountered month", span.text)
 
-                if  "April" in span.text:
-                    print(span.text)
-                    month_object = month
-                    print("Month", self.reservation_month, "found")
-                    break
+            if "April" in span.text:
+                print(span.text)
+                month_object = month
+                print("Month", self.reservation_month, "found")
 
-            if month_object is None:
-                print("Month", self.reservation_month, "not found. Ending search")
-                return False
-
-            for day in month_object.find_elements(By.CSS_SELECTOR, "button.ConsumerCalendar-day.is-in-month.is-available"):
-                span = day.find_element(By.CSS_SELECTOR, "span")
-                print("Encountered day: " + span.text)
-                if span.text in self.reservation_days:
-                    print("Day %s found. Clicking button" % span.text)
-                    day.click()
-
-                    if self.search_time():
-                        print("Time found")
-                        return True
-                    break
-
+        if month_object is None:
+            print("Month", self.reservation_month, "not found. Ending search")
             return False
+
+        for day in month_object.find_elements(By.CSS_SELECTOR, "button.ConsumerCalendar-day.is-in-month.is-available"):
+            span = day.find_element(By.CSS_SELECTOR, "span")
+            print("Encountered day: " + span.text)
+            if span.text in self.reservation_days:
+                print("Day %s found. Clicking button" % span.text)
+                day.click()
+
+                if self.search_time():
+                    print("Time found")
+                    return True
+                break
+
+        return False
